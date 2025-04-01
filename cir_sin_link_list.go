@@ -3,6 +3,7 @@ package ds
 import (
 	"errors"
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 )
@@ -22,14 +23,25 @@ func NewCSLList[E comparable](vs ...E) *cslList[E] {
 
 func (l *cslList[E]) String() string {
 	var b strings.Builder
-	b.Grow(10 + l.Length()*5 - 4)
+	b.Grow(10 + l.Length()*2 - 1)
 	b.WriteString("cslList{ ")
-	if len(l.data) > 0 {
-		for i := range len(l.data) - 1 {
-			b.WriteString(fmt.Sprintf("%v -> ", l.data[i]))
+	switch data := any(l.data).(type) {
+	case []rune:
+		if len(data) > 0 {
+			for i := range len(data) - 1 {
+				b.WriteString(fmt.Sprintf("%c ", data[i]))
+			}
+			b.WriteString(fmt.Sprintf("%c", data[len(data)-1]))
 		}
-		b.WriteString(fmt.Sprintf("%v", l.data[len(l.data)-1]))
+	default:
+		if len(l.data) > 0 {
+			for i := range len(l.data) - 1 {
+				b.WriteString(fmt.Sprintf("%v ", l.data[i]))
+			}
+			b.WriteString(fmt.Sprintf("%v", l.data[len(l.data)-1]))
+		}
 	}
+
 	b.WriteString(" }")
 	return b.String()
 }
@@ -84,6 +96,9 @@ func (l *cslList[E]) Insert(v E, i int) error {
 }
 
 func (l *cslList[E]) Extend(es *cslList[E]) {
+	if es == nil {
+		return
+	}
 	l.data = append(l.data, es.data...)
 }
 
@@ -109,4 +124,8 @@ func (l *cslList[E]) DeleteAll(v E) {
 
 func (l *cslList[E]) Clear() {
 	l.data = nil
+}
+
+func (l *cslList[E]) Iter() iter.Seq2[int, E] {
+	return slices.All(l.data)
 }
