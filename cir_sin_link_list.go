@@ -38,7 +38,7 @@ func NewCSLList[E comparable](vs ...E) *cslList[E] {
 }
 
 func (l *cslList[E]) String() string {
-	if (l.len == 0) {
+	if l.len == 0 {
 		return "cslList{  }"
 	}
 
@@ -62,6 +62,9 @@ func (l *cslList[E]) Length() int {
 }
 
 func (l *cslList[E]) Clone() *cslList[E] {
+	if l.len == 0 {
+		return &cslList[E]{}
+	}
 	tail := &node[E]{data: l.tail.data}
 	currCopy := tail
 	curr := l.tail
@@ -111,8 +114,13 @@ func (l *cslList[E]) FindLast(v E) int {
 
 func (l *cslList[E]) Append(v E) {
 	node := &node[E]{data: v}
-	node.next = l.tail.next
-	l.tail.next = node
+	if l.len == 0 {
+		node.next = node
+		l.tail = node
+	} else {
+		node.next = l.tail.next
+		l.tail.next = node
+	}
 	l.tail = node
 	l.len += 1
 }
@@ -139,12 +147,23 @@ func (l *cslList[E]) Insert(v E, i int) error {
 }
 
 func (l *cslList[E]) Extend(es *cslList[E]) {
+	if es == nil || es.len == 0 {
+		return
+	}
+	if l.len == 0 {
+		*l = *es.Clone()
+		return
+	}
+
 	copy := es.Clone()
 	l.tail.next, copy.tail.next, l.tail = copy.tail.next, l.tail.next, copy.tail
 	l.len += es.len
 }
 
 func (l *cslList[E]) Reverse() {
+	if l.len == 0 {
+		return
+	}
 	head := l.tail.next
 	prev := l.tail
 	curr := head
